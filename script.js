@@ -25,7 +25,7 @@
   const FIELD_IDS = [
     "bizName","bizPostcode","bizHuisnr","bizStreet","bizCity","bizPhone","bizEmail",
     "bizKvk","bizBtw",
-    "notaNr","notaDate","payTerm",
+    "notaNr","notaDate","payTerm","betaalwijze",
     "clientName","clientPostcode","clientHuisnr","clientStreet","clientCity",
     "payName","iban"
   ].filter(id => document.getElementById(id));
@@ -281,6 +281,7 @@
     const dateVal = val("notaDate");
     setText("pvDate", dateVal ? formatDateNL(dateVal) : "—");
     setText("pvTerm", val("payTerm") || "—");
+    if(exists("pvBetaalwijze")) setText("pvBetaalwijze", val("betaalwijze") || "—");
 
     // client
     setText("pvClientName", val("clientName") || "[Naam klant]");

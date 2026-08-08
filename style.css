@@ -110,13 +110,16 @@ a{ color:inherit; }
   margin:0 auto;
 }
 .choice-grid{
-  max-width:920px;
+  max-width:1080px;
   margin:0 auto;
   display:grid;
-  grid-template-columns:1fr 1fr;
-  gap:22px;
+  grid-template-columns:repeat(3, 1fr);
+  gap:20px;
 }
-@media (max-width:760px){
+@media (max-width:920px){
+  .choice-grid{ grid-template-columns:1fr 1fr; }
+}
+@media (max-width:620px){
   .choice-grid{ grid-template-columns:1fr; }
 }
 .choice-card{
@@ -474,6 +477,27 @@ table.items tfoot td.sub-label{ text-align:right; color:var(--muted); }
   font-size:13px;
   color:var(--muted);
   font-style:italic;
+}
+.paid-stamp{
+  position:absolute;
+  top:46px;
+  right:48px;
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  padding:8px 18px;
+  border:2.5px solid var(--gold);
+  border-radius:999px;
+  color:var(--gold);
+  font-weight:700;
+  font-size:13px;
+  letter-spacing:.14em;
+  text-transform:uppercase;
+  transform:rotate(-6deg);
+  background:rgba(181,130,42,.06);
+}
+@media print{
+  .paid-stamp{ color:var(--gold); border-color:var(--gold); }
 }
 .mandatory-badge{
   display:inline-block;
