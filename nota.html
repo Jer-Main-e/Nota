@@ -9,7 +9,7 @@
 <body>
 
 <div class="topbar">
-  <div class="brand">Straver Service <small>Nota</small></div>
+  <div class="brand"><img src="images/logo.png" alt="Straver Service logo" class="brand-logo">Straver Service <small>Nota</small></div>
   <a class="back-link" href="index.html">← Terug</a>
 </div>
 
@@ -23,7 +23,7 @@
     <div class="row2">
       <div>
         <label>Postcode</label>
-        <input type="text" id="bizPostcode" value="1234 AB" placeholder="1234 AB">
+        <input type="text" id="bizPostcode" value="1321 LA" placeholder="1234 AB">
       </div>
       <div>
         <label>Huisnummer</label>
@@ -33,18 +33,18 @@
     <div class="row2">
       <div>
         <label>Straatnaam</label>
-        <input type="text" id="bizStreet" value="Straatnaam" placeholder="Straatnaam">
+        <input type="text" id="bizStreet" value="Jaap Ter Haarstraat" placeholder="Straatnaam">
       </div>
       <div>
         <label>Plaats</label>
-        <input type="text" id="bizCity" value="Plaats" placeholder="Plaats">
+        <input type="text" id="bizCity" value="Almere" placeholder="Plaats">
       </div>
     </div>
     <div class="autofill-hint" id="bizAutofillHint"></div>
     <label>Telefoon</label>
-    <input type="text" id="bizPhone" placeholder="06 12345678">
+    <input type="text" id="bizPhone" value="06 33320450" placeholder="06 12345678">
     <label>E-mail</label>
-    <input type="text" id="bizEmail" placeholder="info@straverservice.nl">
+    <input type="text" id="bizEmail" value="straver.service@gmail.com" placeholder="info@straverservice.nl">
 
     <h2 class="second">Nota gegevens</h2>
     <div class="row2">
@@ -91,9 +91,9 @@
 
     <h2 class="second">Betaalgegevens</h2>
     <label>Tenaamstelling</label>
-    <input type="text" id="payName" placeholder="J. Straver">
+    <input type="text" id="payName" value="J.E.F. Tjen-a-Kwoei" placeholder="J. Straver">
     <label>IBAN</label>
-    <input type="text" id="iban" value="NL00 BANK 0000 0000 00" placeholder="NL00 BANK 0000 0000 00">
+    <input type="text" id="iban" value="NL84 RABO 1520 3382 28" placeholder="NL00 BANK 0000 0000 00">
 
     <div class="actions">
       <button class="btn btn-primary" id="printBtn" type="button">Afdrukken / PDF</button>
@@ -117,6 +117,7 @@
           <div class="nota-title">Nota</div>
           <div class="nota-subtitle">Straver Service</div>
         </div>
+        <img src="images/logo.png" alt="Straver Service logo">
       </div>
       <hr class="nota-divider">
 
@@ -124,8 +125,8 @@
         <div>
           <div class="block-label">VAN</div>
           <div class="biz-name" id="pvBizName">Straver Service</div>
-          <div class="muted-line" id="pvBizStreet">Straatnaam 1</div>
-          <div class="muted-line" id="pvBizPostcodeCity">1234 AB Plaats</div>
+          <div class="muted-line" id="pvBizStreet">Jaap Ter Haarstraat 1</div>
+          <div class="muted-line" id="pvBizPostcodeCity">1321 LA Almere</div>
           <div class="muted-line" id="pvBizContact"></div>
         </div>
         <div style="text-align:right;">
@@ -167,7 +168,7 @@
       <div class="pay-block">
         <div class="pay-title">Betaalgegevens</div>
         <div class="kv"><span>Naam:</span> <b id="pvPayName">—</b></div>
-        <div class="kv"><span>IBAN:</span> <b id="pvIban">NL00 BANK 0000 0000 00</b></div>
+        <div class="kv"><span>IBAN:</span> <b id="pvIban">NL84 RABO 1520 3382 28</b></div>
         <div class="kv"><span>O.v.v.:</span> <b>Notanummer <span id="pvNotaNr2">2026-001</span></b></div>
       </div>
 
