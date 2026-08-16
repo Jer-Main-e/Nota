@@ -3,90 +3,668 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Straver Service — Documenten</title>
+<title>Straver Service</title>
 <script>
   try {
-    if (sessionStorage.getItem("ss-gate-unlocked") !== "1") {
-      document.documentElement.classList.add("gate-locked");
+    if (sessionStorage.getItem("ss-unlocked") !== "1") {
+      document.documentElement.classList.add("locked");
     }
-  } catch (e) {
-    document.documentElement.classList.add("gate-locked");
-  }
+  } catch (e) { document.documentElement.classList.add("locked"); }
 </script>
-<link rel="stylesheet" href="css/style.css">
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap');
+:root{
+  --dark:#28402D; --dark-deep:#1b2c1f; --gold:#8A6448; --gold-soft:#a9825f;
+  --paper:#fff; --bg:#F5F0E7; --line:#D5C0A6; --text:#2C2C2C; --muted:#7a7263;
+  --danger:#a8503f; --shadow-md:0 4px 16px rgba(27,44,31,.08); --shadow-lg:0 12px 32px rgba(27,44,31,.14);
+  --radius:10px;
+}
+*{box-sizing:border-box;}
+body{margin:0;font-family:"Inter",Arial,sans-serif;background:var(--bg);color:var(--text);padding:24px;}
+h1,h2{font-family:"Fraunces",Georgia,serif;}
+html.locked #app{display:none;}
+html:not(.locked) #pinGate{display:none;}
+
+/* ---- PIN gate ---- */
+.pin-gate{position:fixed;inset:0;z-index:999;display:flex;align-items:center;justify-content:center;background:var(--bg);padding:24px;}
+.pin-gate-card{width:100%;max-width:340px;background:var(--paper);border:1px solid var(--line);border-radius:16px;padding:34px 30px;box-shadow:var(--shadow-lg);text-align:center;}
+.pin-gate h1{font-size:20px;font-weight:600;color:var(--dark-deep);margin:0 0 6px;}
+.pin-gate p{font-size:12.5px;color:var(--muted);margin:0 0 20px;}
+.pin-gate input{width:100%;padding:10px;border:1px solid #cfd2c8;border-radius:7px;text-align:center;letter-spacing:.2em;font-size:16px;font-weight:600;}
+.pin-gate-error{min-height:16px;font-size:12px;color:var(--danger);margin-top:8px;}
+.pin-gate.shake .pin-gate-card{animation:shake .4s ease;}
+@keyframes shake{0%,100%{transform:translateX(0)}20%{transform:translateX(-8px)}40%{transform:translateX(8px)}60%{transform:translateX(-6px)}80%{transform:translateX(6px)}}
+
+/* ---- App shell ---- */
+.topbar{max-width:1100px;margin:0 auto 20px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;}
+.brand{font-family:"Fraunces",serif;font-weight:700;font-size:18px;color:var(--dark-deep);}
+.tabs{display:flex;gap:6px;background:var(--paper);border:1px solid var(--line);border-radius:10px;padding:4px;}
+.tabs button{border:none;background:none;padding:8px 16px;border-radius:7px;font-size:13px;font-weight:600;color:var(--muted);cursor:pointer;}
+.tabs button.active{background:var(--dark);color:#fff;}
+
+.app-layout{max-width:1120px;margin:0 auto;display:grid;grid-template-columns:370px 1fr;gap:24px;}
+@media (max-width:900px){.app-layout{grid-template-columns:1fr;}}
+
+.panel{background:var(--paper);border:1px solid var(--line);border-radius:var(--radius);padding:22px;align-self:start;position:sticky;top:24px;box-shadow:0 1px 2px rgba(27,44,31,.06);}
+.panel h2{font-size:12.5px;letter-spacing:.09em;text-transform:uppercase;color:var(--gold);font-weight:700;margin:0 0 14px;border-bottom:1px solid var(--line);padding-bottom:10px;}
+.panel h2.second{margin-top:24px;}
+label{display:block;font-size:12px;color:var(--muted);margin:10px 0 4px;font-weight:500;}
+input[type=text],input[type=number],input[type=date],select{width:100%;padding:9px 11px;border:1px solid #cfd2c8;border-radius:7px;font-size:13.5px;font-family:inherit;background:#faf7f0;color:var(--text);}
+input:focus,select:focus{outline:none;border-color:var(--gold);box-shadow:0 0 0 3px rgba(138,100,72,.15);}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.hint-line{font-size:11px;color:var(--muted);margin:-6px 0 8px 2px;}
+.autofill-hint{font-size:11px;color:var(--gold);margin:-4px 0 10px 2px;min-height:14px;}
+
+.lines{margin-top:8px;}
+.line-card{border:1px solid var(--line);border-radius:9px;padding:13px;margin-bottom:10px;background:#faf7f0;position:relative;}
+.line-card .remove{position:absolute;top:8px;right:8px;border:none;background:none;color:var(--danger);font-size:16px;cursor:pointer;padding:2px 6px;}
+.line-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.line-grid .full{grid-column:1/-1;}
+.add-btn{width:100%;padding:10px;border:1px dashed var(--gold);background:transparent;color:var(--gold);border-radius:7px;cursor:pointer;font-size:13px;font-weight:600;margin-top:4px;}
+
+.actions{margin-top:22px;display:flex;gap:8px;}
+.btn{flex:1;padding:11px;border-radius:8px;border:none;font-size:13.5px;font-weight:600;cursor:pointer;}
+.btn-primary{background:var(--dark);color:#fff;}
+.btn-ghost{background:#fff;color:var(--dark);border:1px solid var(--line);}
+.hint{font-size:11px;color:var(--muted);margin-top:10px;line-height:1.5;}
+
+.preview-wrap{min-width:0;}
+#doc{background:var(--paper);border:1px solid var(--line);border-radius:var(--radius);padding:50px 48px;min-height:600px;box-shadow:var(--shadow-md);position:relative;}
+.doc-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:26px;}
+.doc-title{font-family:"Fraunces",serif;font-size:36px;font-weight:700;color:var(--dark-deep);}
+.doc-subtitle{font-size:11.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--gold);font-weight:700;margin-top:2px;}
+.doc-divider{border:none;border-top:3px solid var(--gold);margin:0 0 24px;}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:26px;}
+.block-label{font-size:11px;letter-spacing:.08em;color:var(--gold);font-weight:700;margin-bottom:6px;}
+.biz-name{font-weight:700;font-size:15px;color:var(--dark-deep);margin-bottom:2px;}
+.muted-line{font-size:12.5px;color:var(--muted);line-height:1.55;}
+.kv{font-size:12.5px;margin:3px 0;}
+.kv b{color:var(--text);}
+.kv span{color:var(--muted);}
+table.items{width:100%;border-collapse:collapse;margin-top:6px;}
+table.items thead th{background:var(--dark-deep);color:#fff;font-size:11.5px;text-align:left;padding:10px 11px;font-weight:600;}
+table.items thead th.num{text-align:right;}
+table.items tbody td{padding:10px 11px;border-bottom:1px solid var(--line);font-size:13px;vertical-align:top;}
+table.items tbody td.num{text-align:right;white-space:nowrap;}
+table.items tfoot td{padding:7px 11px;font-size:13px;}
+table.items tfoot td.sub-label{text-align:right;color:var(--muted);}
+.total-row td{font-weight:800;font-size:16px;color:var(--dark-deep);border-top:2px solid var(--dark-deep);padding-top:12px!important;}
+.btw-note{font-size:11.5px;color:var(--muted);font-style:italic;margin-top:12px;}
+.pay-block{margin-top:28px;padding-top:18px;border-top:1px solid var(--line);}
+.pay-title{font-weight:700;color:var(--dark-deep);font-size:12.5px;text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px;}
+.thanks{margin-top:26px;font-size:13px;color:var(--muted);font-style:italic;}
+.paid-stamp{position:absolute;top:46px;right:48px;display:inline-flex;padding:8px 18px;border:2.5px solid var(--gold);border-radius:999px;color:var(--gold);font-weight:700;font-size:13px;letter-spacing:.14em;text-transform:uppercase;transform:rotate(-6deg);background:rgba(138,100,72,.06);}
+
+.planning-placeholder{background:var(--paper);border:1px dashed var(--line);border-radius:var(--radius);padding:60px 30px;text-align:center;color:var(--muted);font-size:14px;}
+
+@media print{
+  body{background:#fff;padding:0;}
+  .panel,.topbar,.hint{display:none;}
+  .app-layout{display:block;}
+  #doc{border:none;border-radius:0;padding:0;box-shadow:none;}
+}
+</style>
 </head>
 <body>
 
 <div id="pinGate" class="pin-gate">
   <div class="pin-gate-card">
-    <div class="pin-gate-brand"><img src="images/logo.png" alt="Straver Service logo">Straver Service</div>
-    <h1>Deze pagina is vergrendeld</h1>
-    <p class="sub">Voer de pincode in om verder te gaan.</p>
+    <h1>Straver Service</h1>
+    <p>Voer de pincode in om verder te gaan.</p>
     <form id="pinGateForm" autocomplete="off">
-      <input type="password" id="pinGateInput" maxlength="8" placeholder="••••••••" inputmode="text" autocomplete="off">
+      <input type="password" id="pinGateInput" maxlength="8" placeholder="••••••••" autocomplete="off">
       <div class="pin-gate-error" id="pinGateError"></div>
-      <button type="submit" class="btn btn-primary" id="pinGateSubmit">Ontgrendel</button>
+      <button type="submit" class="btn btn-primary" id="pinGateSubmit" style="width:100%;margin-top:14px;">Ontgrendel</button>
     </form>
   </div>
 </div>
 
-<div class="page-content">
-
+<div id="app">
   <div class="topbar">
-    <div class="brand"><img src="images/logo.png" alt="Straver Service logo" class="brand-logo">Straver Service <small>Documenten</small></div>
+    <div class="brand">Straver Service</div>
+    <nav class="tabs" id="tabs">
+      <button data-mode="nota">Nota</button>
+      <button data-mode="factuur">Factuur</button>
+      <button data-mode="kwitantie">Kwitantie</button>
+      <button data-mode="planning">Planning</button>
+    </nav>
   </div>
 
-  <div class="hero">
-    <span class="eyebrow">Kies je document</span>
-    <h1>Wat wil je opstellen?</h1>
-    <p>Een nota en een factuur zijn niet hetzelfde. Kies hieronder het document dat bij je situatie past — of lees eerst het verschil.</p>
+  <div class="app-layout" id="docLayout">
+    <div class="panel" id="panel"></div>
+    <div class="preview-wrap"><div id="doc"></div></div>
   </div>
 
-  <div class="choice-grid">
-    <a class="choice-card" href="nota.html">
-      <div class="choice-kicker">Informeel</div>
-      <h2>Nota</h2>
-      <p>Een eenvoudige betaalherinnering of prijsopgave, zonder wettelijke eisen. Geen btw-plicht nodig.</p>
-      <ul>
-        <li>Geen btw-nummer of KVK-nummer verplicht</li>
-        <li>Geen doorlopende nummering vereist</li>
-        <li>Handig voor kleine klussen of proforma-bedragen</li>
-      </ul>
-      <span class="choice-cta">Nota maken <span class="arrow">→</span></span>
-    </a>
-
-    <a class="choice-card" href="factuur.html">
-      <div class="choice-kicker">Formeel &amp; wettelijk</div>
-      <h2>Factuur</h2>
-      <p>Een officiële factuur met btw-specificatie, verplicht voor btw-plichtige ondernemers bij verkoop aan klanten.</p>
-      <ul>
-        <li>KVK- en btw-nummer, doorlopend factuurnummer</li>
-        <li>Btw per regel, subtotaal en totaal incl. btw</li>
-        <li>Voldoet aan de wettelijke factuurvereisten</li>
-      </ul>
-      <span class="choice-cta">Factuur maken <span class="arrow">→</span></span>
-    </a>
-
-    <a class="choice-card" href="kwitantie.html">
-      <div class="choice-kicker">Na betaling</div>
-      <h2>Kwitantie</h2>
-      <p>Geen factuur en geen btw-document — een net bewijs dat je de betaling van een nota hebt ontvangen.</p>
-      <ul>
-        <li>Verwijst naar het oorspronkelijke nota-/factuurnummer</li>
-        <li>Toont betaalwijze en ontvangstdatum</li>
-        <li>Fijne, professionele afronding richting je klant</li>
-      </ul>
-      <span class="choice-cta">Kwitantie maken <span class="arrow">→</span></span>
-    </a>
+  <div class="planning-placeholder" id="planningPlaceholder" style="display:none; max-width:1120px; margin:0 auto;">
+    Planning komt hier binnenkort — je kunt straks meerdere webcal-links toevoegen om je roosters te bekijken.
   </div>
-
-  <p class="hint-banner">
-    Twijfel je welke je nodig hebt? Vraag het gewoon in de chat — je hoort dan wat het verschil precies betekent voor jouw eenmanszaak.
-  </p>
-
-
-<script src="js/gate.js"></script>
 </div>
 
+<script>
+(function(){
+
+/* ---------------- Constants ---------------- */
+const DEFAULT_RATE = 35;
+const BTW_RATES = [21, 9, 0];
+const BIZ_FIELDS = ["bizName","bizPostcode","bizHuisnr","bizStreet","bizCity","bizPhone","bizEmail","bizKvk","bizBtw","payName","iban"];
+const MODE_LABELS = { nota:"Nota", factuur:"Factuur", kwitantie:"Kwitantie" };
+
+let MODE = "nota";
+let biz = {};
+let docStates = {}; // { nota: {...}, factuur: {...}, kwitantie: {...} }
+
+/* ---------------- Small helpers ---------------- */
+function $(id){ return document.getElementById(id); }
+function val(id){ const el = $(id); return el ? el.value : ""; }
+function setText(id, text){ const el = $(id); if (el) el.textContent = text; }
+function escapeHtml(s){ return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
+function escapeAttr(s){ return String(s).replace(/"/g,"&quot;"); }
+function fmtEuro(n){ return "€ " + (n||0).toLocaleString("nl-NL",{minimumFractionDigits:2,maximumFractionDigits:2}); }
+function formatDateNL(iso){
+  const months=["januari","februari","maart","april","mei","juni","juli","augustus","september","oktober","november","december"];
+  const [y,m,d]=iso.split("-").map(Number);
+  return `${d} ${months[m-1]} ${y}`;
+}
+function formatPostcodeValue(raw){
+  if(!raw) return raw;
+  const clean = raw.replace(/\s+/g,"").toUpperCase();
+  const m = clean.match(/^([1-9][0-9]{3})([A-Z]{2})$/);
+  return m ? m[1]+" "+m[2] : raw;
+}
+function formatIbanValue(raw){
+  if(!raw) return raw;
+  const clean = raw.replace(/\s+/g,"").toUpperCase();
+  if(!/^[A-Z]{2}[0-9A-Z]{6,32}$/.test(clean)) return raw;
+  return clean.match(/.{1,4}/g).join(" ");
+}
+
+/* ---------------- Default doc state per mode ---------------- */
+function defaultLines(mode){
+  return mode === "factuur"
+    ? [{type:"uren",omschrijving:"Werkzaamheden",aantal:1,tarief:DEFAULT_RATE,btw:21},
+       {type:"aanrij",omschrijving:"Aanrijkosten",aantal:1,tarief:0,btw:21}]
+    : [{type:"uren",omschrijving:"Werkzaamheden",aantal:1,tarief:DEFAULT_RATE},
+       {type:"aanrij",omschrijving:"Aanrijkosten",aantal:1,tarief:0}];
+}
+function defaultDocState(mode){
+  return {
+    nr: "2026-001",
+    date: new Date().toISOString().slice(0,10),
+    payTerm: "14 dagen",
+    betaalwijze: "Bankoverschrijving",
+    clientName: "", clientPostcode: "", clientHuisnr: "", clientStreet: "", clientCity: "",
+    lines: defaultLines(mode)
+  };
+}
+
+/* ---------------- Persistence ---------------- */
+function saveBiz(){
+  try{ localStorage.setItem("ss-biz", JSON.stringify(biz)); }catch(e){}
+  flashSaved();
+}
+function loadBiz(){
+  try{
+    const raw = localStorage.getItem("ss-biz");
+    if(raw) biz = JSON.parse(raw);
+  }catch(e){}
+}
+function saveDoc(mode){
+  try{ localStorage.setItem("ss-doc-"+mode, JSON.stringify(docStates[mode])); }catch(e){}
+  flashSaved();
+}
+function loadDoc(mode){
+  try{
+    const raw = localStorage.getItem("ss-doc-"+mode);
+    docStates[mode] = raw ? JSON.parse(raw) : defaultDocState(mode);
+  }catch(e){
+    docStates[mode] = defaultDocState(mode);
+  }
+}
+let saveTimer;
+function flashSaved(){
+  const el = $("saveStatus");
+  if(!el) return;
+  el.textContent = "Opgeslagen ✓";
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(()=>{ el.textContent=""; }, 1200);
+}
+
+/* ---------------- Address autofill (PDOK) ---------------- */
+async function autofillAddress(prefix){
+  const pcId = prefix==="biz" ? "bizPostcode" : "clientPostcode";
+  const hnId = prefix==="biz" ? "bizHuisnr" : "clientHuisnr";
+  const stId = prefix==="biz" ? "bizStreet" : "clientStreet";
+  const ctId = prefix==="biz" ? "bizCity" : "clientCity";
+  const hintId = prefix + "AutofillHint";
+
+  const postcodeRaw = val(pcId).trim();
+  const huisnr = val(hnId).trim();
+  if($(pcId)) $(pcId).value = formatPostcodeValue(postcodeRaw);
+  const postcodeClean = postcodeRaw.replace(/\s+/g,"");
+  if(!/^[1-9][0-9]{3}[A-Za-z]{2}$/.test(postcodeClean) || !huisnr) return;
+
+  const hint = $(hintId);
+  if(hint) hint.textContent = "Adres opzoeken…";
+  try{
+    const q = `${postcodeClean} ${huisnr}`;
+    const url = `https://api.pdok.nl/bzk/locatieserver/search/v3_1/free?q=${encodeURIComponent(q)}&fq=type:adres&rows=1`;
+    const res = await fetch(url);
+    if(!res.ok) throw new Error("fail");
+    const data = await res.json();
+    const doc = data && data.response && data.response.docs && data.response.docs[0];
+    if(doc){
+      if(doc.straatnaam && $(stId)) $(stId).value = doc.straatnaam;
+      if(doc.woonplaatsnaam && $(ctId)) $(ctId).value = doc.woonplaatsnaam;
+      if(hint) hint.textContent = "Straat en plaats automatisch ingevuld ✓";
+      onFieldChange();
+    }else if(hint){
+      hint.textContent = "Geen adres gevonden — vul zelf aan.";
+    }
+  }catch(e){
+    if(hint) hint.textContent = "Opzoeken mislukt — vul zelf aan.";
+  }
+}
+
+/* ---------------- Rendering: controls panel ---------------- */
+function btwOptionsHtml(selected){
+  return BTW_RATES.map(r=>`<option value="${r}" ${Number(selected)===r?"selected":""}>${r}% btw</option>`).join("");
+}
+
+function renderPanel(){
+  const d = docStates[MODE];
+  const isFactuur = MODE === "factuur";
+  const isKwitantie = MODE === "kwitantie";
+
+  $("panel").innerHTML = `
+    <h2>Bedrijfsgegevens</h2>
+    <label>Bedrijfsnaam</label>
+    <input type="text" id="bizName" value="${escapeAttr(biz.bizName||"")}">
+    <div class="row2">
+      <div><label>Postcode</label><input type="text" id="bizPostcode" value="${escapeAttr(biz.bizPostcode||"")}"></div>
+      <div><label>Huisnummer</label><input type="text" id="bizHuisnr" value="${escapeAttr(biz.bizHuisnr||"")}"></div>
+    </div>
+    <div class="row2">
+      <div><label>Straatnaam</label><input type="text" id="bizStreet" value="${escapeAttr(biz.bizStreet||"")}"></div>
+      <div><label>Plaats</label><input type="text" id="bizCity" value="${escapeAttr(biz.bizCity||"")}"></div>
+    </div>
+    <div class="autofill-hint" id="bizAutofillHint"></div>
+    <label>Telefoon</label>
+    <input type="text" id="bizPhone" value="${escapeAttr(biz.bizPhone||"")}">
+    <label>E-mail</label>
+    <input type="text" id="bizEmail" value="${escapeAttr(biz.bizEmail||"")}">
+    ${!isKwitantie ? `
+    <div class="row2">
+      <div><label>KVK-nummer</label><input type="text" id="bizKvk" value="${escapeAttr(biz.bizKvk||"")}"></div>
+      <div><label>Btw-nummer</label><input type="text" id="bizBtw" value="${escapeAttr(biz.bizBtw||"")}"></div>
+    </div>` : ``}
+
+    <h2 class="second">${MODE_LABELS[MODE]}gegevens</h2>
+    <div class="row2">
+      <div><label>${isKwitantie ? "Bij nota-/factuurnr." : "Nummer"}</label><input type="text" id="docNr" value="${escapeAttr(d.nr)}"></div>
+      <div><label>Datum${isKwitantie ? " ontvangen" : ""}</label><input type="date" id="docDate" value="${escapeAttr(d.date)}"></div>
+    </div>
+    ${isKwitantie ? `
+    <label>Betaalwijze</label>
+    <select id="betaalwijze">
+      ${["Bankoverschrijving","Contant","Tikkie / betaalverzoek","iDEAL","Pin"].map(o=>`<option ${d.betaalwijze===o?"selected":""}>${o}</option>`).join("")}
+    </select>` : `
+    <label>Betaaltermijn</label>
+    <input type="text" id="payTerm" value="${escapeAttr(d.payTerm)}">`}
+
+    <h2 class="second">Klantgegevens</h2>
+    <label>Naam klant</label>
+    <input type="text" id="clientName" value="${escapeAttr(d.clientName)}">
+    <div class="row2">
+      <div><label>Postcode</label><input type="text" id="clientPostcode" value="${escapeAttr(d.clientPostcode)}"></div>
+      <div><label>Huisnummer</label><input type="text" id="clientHuisnr" value="${escapeAttr(d.clientHuisnr)}"></div>
+    </div>
+    <div class="row2">
+      <div><label>Straatnaam</label><input type="text" id="clientStreet" value="${escapeAttr(d.clientStreet)}"></div>
+      <div><label>Plaats</label><input type="text" id="clientCity" value="${escapeAttr(d.clientCity)}"></div>
+    </div>
+    <div class="autofill-hint" id="clientAutofillHint"></div>
+
+    <h2 class="second">${isKwitantie ? "Ontvangen voor" : "Werkzaamheden"}</h2>
+    <div class="lines" id="lines"></div>
+    <button class="add-btn" id="addLine" type="button">+ Regel toevoegen</button>
+
+    <h2 class="second">Betaalgegevens</h2>
+    <label>Tenaamstelling</label>
+    <input type="text" id="payName" value="${escapeAttr(biz.payName||"")}">
+    <label>IBAN</label>
+    <input type="text" id="iban" value="${escapeAttr(biz.iban||"")}">
+
+    <div class="actions">
+      <button class="btn btn-primary" id="printBtn" type="button">Afdrukken / PDF</button>
+      <button class="btn btn-ghost" id="resetBtn" type="button">Reset regels</button>
+    </div>
+    <div class="hint"><span id="saveStatus" style="color:var(--gold);font-weight:600;"></span>Wijzigingen worden automatisch lokaal opgeslagen in deze browser.</div>
+  `;
+
+  renderLines();
+  wirePanelEvents();
+}
+
+function renderLines(){
+  const d = docStates[MODE];
+  const isFactuur = MODE === "factuur";
+  const linesEl = $("lines");
+  linesEl.innerHTML = d.lines.map((line,i)=>`
+    <div class="line-card">
+      <button type="button" class="remove" data-i="${i}" title="Verwijderen">✕</button>
+      <div class="line-grid">
+        <div class="full">
+          <label>Omschrijving</label>
+          <input type="text" data-field="omschrijving" data-i="${i}" value="${escapeAttr(line.omschrijving)}">
+        </div>
+        <div>
+          <label>Type</label>
+          <select data-field="type" data-i="${i}">
+            <option value="uren" ${line.type==="uren"?"selected":""}>Uren (€${DEFAULT_RATE}/u)</option>
+            <option value="aanrij" ${line.type==="aanrij"?"selected":""}>Aanrijkosten</option>
+            <option value="overig" ${line.type==="overig"?"selected":""}>Overig</option>
+          </select>
+        </div>
+        <div>
+          <label>${line.type==="uren"?"Aantal uur":"Aantal"}</label>
+          <input type="number" step="0.25" min="0" data-field="aantal" data-i="${i}" value="${line.aantal}">
+        </div>
+        <div>
+          <label>Tarief (excl. btw)</label>
+          <input type="number" step="0.01" min="0" data-field="tarief" data-i="${i}" value="${line.tarief}">
+        </div>
+        ${isFactuur ? `<div><label>Btw-tarief</label><select data-field="btw" data-i="${i}">${btwOptionsHtml(line.btw)}</select></div>` : ``}
+      </div>
+    </div>
+  `).join("");
+
+  linesEl.querySelectorAll("input,select").forEach(el=>{
+    el.addEventListener("input", onLineChange);
+    el.addEventListener("change", onLineChange);
+  });
+  linesEl.querySelectorAll(".remove").forEach(btn=>{
+    btn.addEventListener("click", ()=>{
+      d.lines.splice(Number(btn.dataset.i),1);
+      renderLines();
+      renderPreview();
+      saveDoc(MODE);
+    });
+  });
+}
+
+function onLineChange(e){
+  const d = docStates[MODE];
+  const i = Number(e.target.dataset.i);
+  const field = e.target.dataset.field;
+  let value = e.target.value;
+  if(field==="type"){
+    d.lines[i].type = value;
+    if(value==="uren" && (!d.lines[i].tarief || d.lines[i].tarief==0)) d.lines[i].tarief = DEFAULT_RATE;
+    renderLines();
+  }else if(field==="aantal"||field==="tarief"||field==="btw"){
+    d.lines[i][field] = parseFloat(value)||0;
+  }else{
+    d.lines[i][field] = value;
+  }
+  renderPreview();
+  saveDoc(MODE);
+}
+
+function onFieldChange(){
+  const d = docStates[MODE];
+  BIZ_FIELDS.forEach(id=>{ if($(id)) biz[id] = $(id).value; });
+  if($("docNr")) d.nr = $("docNr").value;
+  if($("docDate")) d.date = $("docDate").value;
+  if($("payTerm")) d.payTerm = $("payTerm").value;
+  if($("betaalwijze")) d.betaalwijze = $("betaalwijze").value;
+  ["clientName","clientPostcode","clientHuisnr","clientStreet","clientCity"].forEach(id=>{
+    if($(id)) d[id] = $(id).value;
+  });
+  renderPreview();
+  saveBiz();
+  saveDoc(MODE);
+}
+
+function wirePanelEvents(){
+  const allIds = [...BIZ_FIELDS, "docNr","docDate","payTerm","betaalwijze","clientName","clientPostcode","clientHuisnr","clientStreet","clientCity"];
+  allIds.forEach(id=>{
+    const el = $(id);
+    if(!el) return;
+    el.addEventListener("input", onFieldChange);
+    el.addEventListener("change", onFieldChange);
+  });
+
+  [["bizPostcode",()=>{ $("bizPostcode").value = formatPostcodeValue($("bizPostcode").value); onFieldChange(); }],
+   ["clientPostcode",()=>{ $("clientPostcode").value = formatPostcodeValue($("clientPostcode").value); onFieldChange(); }],
+   ["iban",()=>{ $("iban").value = formatIbanValue($("iban").value); onFieldChange(); }]
+  ].forEach(([id,fn])=>{ const el=$(id); if(el) el.addEventListener("blur", fn); });
+
+  ["bizStreet","bizCity","clientStreet","clientCity","clientName"].forEach(id=>{
+    const el = $(id);
+    if(!el) return;
+    el.addEventListener("blur", ()=>{
+      const v = el.value.trim();
+      if(v) el.value = v.charAt(0).toUpperCase()+v.slice(1);
+      onFieldChange();
+    });
+  });
+
+  ["bizPostcode","bizHuisnr"].forEach(id=>{ const el=$(id); if(el) el.addEventListener("blur", ()=>autofillAddress("biz")); });
+  ["clientPostcode","clientHuisnr"].forEach(id=>{ const el=$(id); if(el) el.addEventListener("blur", ()=>autofillAddress("client")); });
+
+  $("addLine").addEventListener("click", ()=>{
+    const d = docStates[MODE];
+    d.lines.push(MODE==="factuur" ? {type:"overig",omschrijving:"",aantal:1,tarief:0,btw:21} : {type:"overig",omschrijving:"",aantal:1,tarief:0});
+    renderLines();
+    renderPreview();
+    saveDoc(MODE);
+  });
+
+  $("resetBtn").addEventListener("click", ()=>{
+    docStates[MODE].lines = defaultLines(MODE);
+    renderLines();
+    renderPreview();
+    saveDoc(MODE);
+  });
+
+  $("printBtn").addEventListener("click", ()=>window.print());
+}
+
+/* ---------------- Rendering: preview document ---------------- */
+function renderPreview(){
+  const d = docStates[MODE];
+  const isFactuur = MODE === "factuur";
+  const isKwitantie = MODE === "kwitantie";
+
+  const bizStreetLine = [biz.bizStreet, biz.bizHuisnr].filter(Boolean).join(" ");
+  const bizPcCity = [biz.bizPostcode, biz.bizCity].filter(Boolean).join(" ");
+  const bizContact = [biz.bizPhone, biz.bizEmail].filter(Boolean).join(" · ");
+  const kvkBtw = [biz.bizKvk?("KVK "+biz.bizKvk):"", biz.bizBtw?("BTW "+biz.bizBtw):""].filter(Boolean).join(" · ");
+
+  const clientStreetLine = [d.clientStreet, d.clientHuisnr].filter(Boolean).join(" ") || "[Straatnaam 12]";
+  const clientPcCity = [d.clientPostcode, d.clientCity].filter(Boolean).join(" ") || "[1234 AB Plaats]";
+
+  let itemsHtml = "";
+  let subtotal = 0, btwTotal = 0;
+  const btwBuckets = {};
+  d.lines.forEach(line=>{
+    const bedrag = (line.aantal||0)*(line.tarief||0);
+    subtotal += bedrag;
+    const unit = line.type==="uren" ? "u" : "x";
+    let btwCell = "";
+    if(isFactuur){
+      const rate = line.btw||0;
+      const btwBedrag = bedrag*(rate/100);
+      btwTotal += btwBedrag;
+      btwBuckets[rate] = (btwBuckets[rate]||0) + btwBedrag;
+      btwCell = `<td class="num">${rate}%</td>`;
+    }
+    itemsHtml += `<tr><td>${escapeHtml(line.omschrijving||"")}</td><td class="num">${line.aantal} ${unit}</td><td class="num">${fmtEuro(line.tarief||0)}</td>${btwCell}<td class="num">${fmtEuro(bedrag)}</td></tr>`;
+  });
+
+  const total = isFactuur ? subtotal+btwTotal : subtotal;
+
+  let footHtml = "";
+  if(isFactuur){
+    footHtml = `
+      <tr><td colspan="4" class="sub-label">Subtotaal (excl. btw)</td><td class="num">${fmtEuro(subtotal)}</td></tr>
+      ${Object.keys(btwBuckets).sort((a,b)=>b-a).map(rate=>`<tr><td colspan="4" class="sub-label">Btw ${rate}%</td><td class="num">${fmtEuro(btwBuckets[rate])}</td></tr>`).join("")}
+      <tr class="total-row"><td colspan="4" style="text-align:right;">Totaal (incl. btw)</td><td class="num">${fmtEuro(total)}</td></tr>`;
+  }else{
+    footHtml = `<tr class="total-row"><td colspan="3" style="text-align:right;">${isKwitantie?"Totaal ontvangen":"Totaal te betalen"}</td><td class="num">${fmtEuro(total)}</td></tr>`;
+  }
+
+  $("doc").innerHTML = `
+    ${isKwitantie ? `<div class="paid-stamp">✓ Betaald</div>` : ``}
+    <div class="doc-header">
+      <div>
+        <div class="doc-title">${MODE_LABELS[MODE]}</div>
+        <div class="doc-subtitle">${escapeHtml(biz.bizName||"Straver Service")}</div>
+      </div>
+    </div>
+    <hr class="doc-divider">
+    <div class="grid-2">
+      <div>
+        <div class="block-label">VAN</div>
+        <div class="biz-name">${escapeHtml(biz.bizName||"—")}</div>
+        <div class="muted-line">${escapeHtml(bizStreetLine)}</div>
+        <div class="muted-line">${escapeHtml(bizPcCity)}</div>
+        <div class="muted-line">${escapeHtml(bizContact)}</div>
+        ${!isKwitantie ? `<div class="muted-line">${escapeHtml(kvkBtw)}</div>` : ``}
+      </div>
+      <div style="text-align:right;">
+        <div class="kv"><span>${isKwitantie?"Bij nota-/factuurnr.:":"Nummer:"}</span> <b>${escapeHtml(d.nr||"—")}</b></div>
+        <div class="kv"><span>Datum${isKwitantie?" ontvangen":""}:</span> <b>${d.date?formatDateNL(d.date):"—"}</b></div>
+        ${isKwitantie
+          ? `<div class="kv"><span>Betaalwijze:</span> <b>${escapeHtml(d.betaalwijze||"—")}</b></div>`
+          : `<div class="kv"><span>Betaaltermijn:</span> <b>${escapeHtml(d.payTerm||"—")}</b></div>`}
+      </div>
+    </div>
+    <div class="grid-2" style="margin-bottom:10px;">
+      <div>
+        <div class="block-label">${isKwitantie?"ONTVANGEN VAN":"AAN"}</div>
+        <div class="biz-name">${escapeHtml(d.clientName||"[Naam klant]")}</div>
+        <div class="muted-line">${escapeHtml(clientStreetLine)}</div>
+        <div class="muted-line">${escapeHtml(clientPcCity)}</div>
+      </div>
+      <div></div>
+    </div>
+    <table class="items">
+      <thead><tr>
+        <th>Omschrijving</th><th class="num">Aantal</th><th class="num">Tarief</th>${isFactuur?`<th class="num">Btw</th>`:``}<th class="num">Bedrag</th>
+      </tr></thead>
+      <tbody>${itemsHtml}</tbody>
+      <tfoot>${footHtml}</tfoot>
+    </table>
+    ${isFactuur ? `` : isKwitantie
+      ? `<div class="btw-note">Geen btw-document — bevestiging van ontvangst, geen wettelijke factuur.</div>`
+      : `<div class="btw-note">Btw niet van toepassing (geen btw-plichtige onderneming).</div>`}
+    <div class="pay-block">
+      <div class="pay-title">${isKwitantie?"Ontvangen op rekening":"Betaalgegevens"}</div>
+      <div class="kv"><span>Naam:</span> <b>${escapeHtml(biz.payName||"—")}</b></div>
+      <div class="kv"><span>IBAN:</span> <b>${escapeHtml(biz.iban||"—")}</b></div>
+      ${!isKwitantie ? `<div class="kv"><span>O.v.v.:</span> <b>${MODE_LABELS[MODE]}nummer ${escapeHtml(d.nr||"—")}</b></div>` : ``}
+    </div>
+    <div class="thanks">${isKwitantie ? "Hierbij bevestigen wij de ontvangst van bovenstaand bedrag. Bedankt voor het vertrouwen!" : "Bedankt voor het vertrouwen!"}</div>
+  `;
+}
+
+/* ---------------- Tabs ---------------- */
+function switchMode(mode){
+  MODE = mode;
+  document.querySelectorAll("#tabs button").forEach(b=>b.classList.toggle("active", b.dataset.mode===mode));
+
+  if(mode === "planning"){
+    $("docLayout").style.display = "none";
+    $("planningPlaceholder").style.display = "block";
+    return;
+  }
+  $("docLayout").style.display = "grid";
+  $("planningPlaceholder").style.display = "none";
+
+  if(!docStates[mode]) loadDoc(mode);
+  renderPanel();
+  renderPreview();
+}
+
+document.querySelectorAll("#tabs button").forEach(btn=>{
+  btn.addEventListener("click", ()=>switchMode(btn.dataset.mode));
+});
+
+/* ---------------- Boot the app once unlocked ---------------- */
+function bootApp(bizData){
+  if(bizData) biz = Object.assign({}, bizData, biz); // keep any locally-edited overrides, fill blanks from server
+  loadBiz();
+  // server data still wins for any field the user hasn't already customized locally
+  if(bizData) Object.keys(bizData).forEach(k=>{ if(!biz[k]) biz[k] = bizData[k]; });
+  switchMode("nota");
+}
+
+/* ---------------- PIN gate ---------------- */
+(function gate(){
+  const SESSION_UNLOCKED = "ss-unlocked";
+  const SESSION_DATA = "ss-gate-data";
+  const gateEl = $("pinGate");
+  const input = $("pinGateInput");
+  const form = $("pinGateForm");
+  const errorEl = $("pinGateError");
+  const submitBtn = $("pinGateSubmit");
+
+  function unlock(data){
+    try{
+      sessionStorage.setItem(SESSION_UNLOCKED, "1");
+      sessionStorage.setItem(SESSION_DATA, JSON.stringify(data||{}));
+    }catch(e){}
+    document.documentElement.classList.remove("locked");
+    bootApp(data);
+  }
+
+  function showError(msg){
+    errorEl.textContent = msg;
+    gateEl.classList.add("shake");
+    setTimeout(()=>gateEl.classList.remove("shake"), 400);
+  }
+
+  let cachedUnlocked = false;
+  try{ cachedUnlocked = sessionStorage.getItem(SESSION_UNLOCKED) === "1"; }catch(e){}
+
+  if(cachedUnlocked){
+    document.documentElement.classList.remove("locked");
+    let data = null;
+    try{ data = JSON.parse(sessionStorage.getItem(SESSION_DATA)||"null"); }catch(e){}
+    bootApp(data);
+  }
+
+  form.addEventListener("submit", async (e)=>{
+    e.preventDefault();
+    const entered = input.value.trim();
+    if(!entered) return;
+    submitBtn.disabled = true; submitBtn.textContent = "Controleren…";
+    errorEl.textContent = "";
+    try{
+      const res = await fetch("/api/unlock", {
+        method:"POST",
+        headers:{"Content-Type":"application/json"},
+        body: JSON.stringify({ pin: entered })
+      });
+      const payload = await res.json().catch(()=>({ok:false}));
+      if(res.ok && payload.ok){
+        unlock(payload.data);
+      }else{
+        showError("Onjuiste pincode. Probeer opnieuw.");
+        input.value=""; input.focus();
+      }
+    }catch(e){
+      showError("Kan pincode niet controleren — check je internetverbinding.");
+    }finally{
+      submitBtn.disabled = false; submitBtn.textContent = "Ontgrendel";
+    }
+  });
+
+  if(document.documentElement.classList.contains("locked")) setTimeout(()=>input.focus(), 50);
+})();
+
+})();
+</script>
 </body>
 </html>
