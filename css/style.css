@@ -527,3 +527,76 @@ table.items tfoot td.sub-label{ text-align:right; color:var(--muted); }
   #nota{ border:none; border-radius:0; padding:0; box-shadow:none; }
   .preview-wrap{ margin:0; }
 }
+
+/* ============ PIN gate ============ */
+html:not(.gate-locked) #pinGate{ display:none; }
+html.gate-locked .page-content{ display:none !important; }
+
+.pin-gate{
+  position:fixed;
+  inset:0;
+  z-index:9999;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  background:var(--bg);
+  background-image:
+    radial-gradient(circle at 15% 0%, rgba(138,100,72,.07), transparent 45%),
+    radial-gradient(circle at 100% 30%, rgba(40,64,45,.05), transparent 40%);
+  padding:24px;
+}
+.pin-gate-card{
+  width:100%;
+  max-width:340px;
+  background:var(--paper);
+  border:1px solid var(--line);
+  border-radius:16px;
+  padding:34px 30px;
+  box-shadow:var(--shadow-lg);
+  text-align:center;
+}
+.pin-gate-brand{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:8px;
+  font-family:"Fraunces", serif;
+  font-weight:700;
+  font-size:16px;
+  color:var(--dark-deep);
+  margin-bottom:18px;
+}
+.pin-gate-brand img{ height:28px; width:28px; object-fit:contain; border-radius:6px; }
+.pin-gate h1{
+  font-family:"Fraunces", serif;
+  font-size:20px;
+  font-weight:600;
+  color:var(--dark-deep);
+  margin:0 0 6px;
+}
+.pin-gate p.sub{
+  font-size:12.5px;
+  color:var(--muted);
+  margin:0 0 20px;
+}
+.pin-gate input[type=password], .pin-gate input[type=text]{
+  text-align:center;
+  letter-spacing:.2em;
+  font-size:16px;
+  font-weight:600;
+}
+.pin-gate-error{
+  min-height:16px;
+  font-size:12px;
+  color:var(--danger);
+  margin-top:8px;
+}
+.pin-gate .btn{ margin-top:14px; width:100%; }
+.pin-gate.shake .pin-gate-card{ animation: gate-shake .4s ease; }
+@keyframes gate-shake{
+  0%,100%{ transform:translateX(0); }
+  20%{ transform:translateX(-8px); }
+  40%{ transform:translateX(8px); }
+  60%{ transform:translateX(-6px); }
+  80%{ transform:translateX(6px); }
+}

@@ -4,9 +4,33 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Straver Service — Documenten</title>
+<script>
+  try {
+    if (sessionStorage.getItem("ss-gate-unlocked") !== "1") {
+      document.documentElement.classList.add("gate-locked");
+    }
+  } catch (e) {
+    document.documentElement.classList.add("gate-locked");
+  }
+</script>
 <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
+
+<div id="pinGate" class="pin-gate">
+  <div class="pin-gate-card">
+    <div class="pin-gate-brand"><img src="images/logo.png" alt="Straver Service logo">Straver Service</div>
+    <h1>Deze pagina is vergrendeld</h1>
+    <p class="sub">Voer de pincode in om verder te gaan.</p>
+    <form id="pinGateForm" autocomplete="off">
+      <input type="password" id="pinGateInput" maxlength="8" placeholder="••••••••" inputmode="text" autocomplete="off">
+      <div class="pin-gate-error" id="pinGateError"></div>
+      <button type="submit" class="btn btn-primary" id="pinGateSubmit">Ontgrendel</button>
+    </form>
+  </div>
+</div>
+
+<div class="page-content">
 
   <div class="topbar">
     <div class="brand"><img src="images/logo.png" alt="Straver Service logo" class="brand-logo">Straver Service <small>Documenten</small></div>
@@ -59,6 +83,10 @@
   <p class="hint-banner">
     Twijfel je welke je nodig hebt? Vraag het gewoon in de chat — je hoort dan wat het verschil precies betekent voor jouw eenmanszaak.
   </p>
+
+
+<script src="js/gate.js"></script>
+</div>
 
 </body>
 </html>

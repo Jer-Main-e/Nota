@@ -4,9 +4,33 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Factuur generator — Straver Service</title>
+<script>
+  try {
+    if (sessionStorage.getItem("ss-gate-unlocked") !== "1") {
+      document.documentElement.classList.add("gate-locked");
+    }
+  } catch (e) {
+    document.documentElement.classList.add("gate-locked");
+  }
+</script>
 <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
+
+<div id="pinGate" class="pin-gate">
+  <div class="pin-gate-card">
+    <div class="pin-gate-brand"><img src="images/logo.png" alt="Straver Service logo">Straver Service</div>
+    <h1>Deze pagina is vergrendeld</h1>
+    <p class="sub">Voer de pincode in om verder te gaan.</p>
+    <form id="pinGateForm" autocomplete="off">
+      <input type="password" id="pinGateInput" maxlength="8" placeholder="••••••••" inputmode="text" autocomplete="off">
+      <div class="pin-gate-error" id="pinGateError"></div>
+      <button type="submit" class="btn btn-primary" id="pinGateSubmit">Ontgrendel</button>
+    </form>
+  </div>
+</div>
+
+<div class="page-content">
 
 <div class="topbar">
   <div class="brand"><img src="images/logo.png" alt="Straver Service logo" class="brand-logo">Straver Service <small>Factuur</small></div>
@@ -19,32 +43,32 @@
   <div class="panel">
     <h2>Bedrijfsgegevens</h2>
     <label>Bedrijfsnaam</label>
-    <input type="text" id="bizName" value="Straver Service" placeholder="Straver Service">
+    <input type="text" id="bizName" value="" placeholder="Straver Service">
     <div class="row2">
       <div>
         <label>Postcode</label>
-        <input type="text" id="bizPostcode" value="1321 LA" placeholder="1234 AB">
+        <input type="text" id="bizPostcode" value="" placeholder="1234 AB">
       </div>
       <div>
         <label>Huisnummer</label>
-        <input type="text" id="bizHuisnr" value="1" placeholder="1">
+        <input type="text" id="bizHuisnr" value="" placeholder="1">
       </div>
     </div>
     <div class="row2">
       <div>
         <label>Straatnaam</label>
-        <input type="text" id="bizStreet" value="Jaap Ter Haarstraat" placeholder="Straatnaam">
+        <input type="text" id="bizStreet" value="" placeholder="Straatnaam">
       </div>
       <div>
         <label>Plaats</label>
-        <input type="text" id="bizCity" value="Almere" placeholder="Plaats">
+        <input type="text" id="bizCity" value="" placeholder="Plaats">
       </div>
     </div>
     <div class="autofill-hint" id="bizAutofillHint"></div>
     <label>Telefoon</label>
-    <input type="text" id="bizPhone" value="06 33320450" placeholder="06 12345678">
+    <input type="text" id="bizPhone" value="" placeholder="06 12345678">
     <label>E-mail</label>
-    <input type="text" id="bizEmail" value="straver.service@gmail.com" placeholder="info@straverservice.nl">
+    <input type="text" id="bizEmail" value="" placeholder="info@straverservice.nl">
     <div class="row2">
       <div>
         <label>KVK-nummer <span class="mandatory-badge">verplicht</span></label>
@@ -103,9 +127,9 @@
 
     <h2 class="second">Betaalgegevens</h2>
     <label>Tenaamstelling</label>
-    <input type="text" id="payName" value="J.E.F. Tjen-a-Kwoei" placeholder="J. Straver">
+    <input type="text" id="payName" value="" placeholder="J. Straver">
     <label>IBAN</label>
-    <input type="text" id="iban" value="NL84 RABO 1520 3382 28" placeholder="NL00 BANK 0000 0000 00">
+    <input type="text" id="iban" value="" placeholder="NL00 BANK 0000 0000 00">
 
     <div class="actions">
       <button class="btn btn-primary" id="printBtn" type="button">Afdrukken / PDF</button>
@@ -136,9 +160,9 @@
       <div class="grid-2">
         <div>
           <div class="block-label">VAN</div>
-          <div class="biz-name" id="pvBizName">Straver Service</div>
-          <div class="muted-line" id="pvBizStreet">Jaap Ter Haarstraat 1</div>
-          <div class="muted-line" id="pvBizPostcodeCity">1321 LA Almere</div>
+          <div class="biz-name" id="pvBizName"></div>
+          <div class="muted-line" id="pvBizStreet"></div>
+          <div class="muted-line" id="pvBizPostcodeCity"></div>
           <div class="muted-line" id="pvBizContact"></div>
           <div class="muted-line" id="pvBizKvkBtw"></div>
         </div>
@@ -185,7 +209,7 @@
       <div class="pay-block">
         <div class="pay-title">Betaalgegevens</div>
         <div class="kv"><span>Naam:</span> <b id="pvPayName">—</b></div>
-        <div class="kv"><span>IBAN:</span> <b id="pvIban">NL84 RABO 1520 3382 28</b></div>
+        <div class="kv"><span>IBAN:</span> <b id="pvIban">—</b></div>
         <div class="kv"><span>O.v.v.:</span> <b>Factuurnummer <span id="pvNotaNr2">2026-001</span></b></div>
       </div>
 
@@ -199,5 +223,9 @@
   window.DOC_CONFIG = { mode: "factuur", storageKey: "straver-service-factuur" };
 </script>
 <script src="js/script.js"></script>
+
+<script src="js/gate.js"></script>
+</div>
+
 </body>
 </html>

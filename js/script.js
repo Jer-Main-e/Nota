@@ -411,5 +411,20 @@
     renderPreview();
   }
 
+  /* ---------------- Business defaults from the PIN gate ----------------
+     Called by gate.js after a successful unlock, with the business data it
+     got back from the Cloudflare Worker. Only fills fields that are still
+     empty, so it never overwrites anything already restored from
+     localStorage (e.g. changes you made and saved previously). */
+  window.SS_applyBizDefaults = function (data) {
+    if (!data) return;
+    Object.keys(data).forEach(id => {
+      const el = document.getElementById(id);
+      if (el && !el.value) el.value = data[id];
+    });
+    renderPreview();
+    saveState();
+  };
+
   document.addEventListener("DOMContentLoaded", init);
 })();
