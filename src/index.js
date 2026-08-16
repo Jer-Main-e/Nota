@@ -6,6 +6,8 @@ function json(data, status) {
 }
 
 function safeEqual(a, b) {
+  console.log("DEBUG entered:", JSON.stringify(a), "len:", a.length);
+  console.log("DEBUG secret:", JSON.stringify(b), "len:", b ? b.length : "undefined");
   if (typeof a !== "string" || typeof b !== "string") return false;
   if (a.length !== b.length) return false;
   let mismatch = 0;
